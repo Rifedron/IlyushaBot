@@ -28,8 +28,8 @@ public class VoiceChannelListener extends ListenerAdapter {
         AudioChannelUnion joinChannel = event.getChannelJoined();
         AudioChannelUnion leftChannel = event.getChannelLeft();
 
-        if (joinChannel != null) onJoinVC(event);
-        if (leftChannel != null) onQuitVC(event);
+        if (joinChannel != null) new Thread(() -> onJoinVC(event)).start();
+        if (leftChannel != null) new Thread(() -> onQuitVC(event)).start();
     }
 
     @Override
@@ -49,15 +49,23 @@ public class VoiceChannelListener extends ListenerAdapter {
             try {
                 voiceChannel.getGuild().moveVoiceMember(member, voiceChannel)
                         .onSuccess(unused -> {
-                            success.set(true);
                             PrivateVc privateVC = new PrivateVc(voiceChannel.getId(), member.getId());
                             PrivateVcs.privateVcDAO.add(privateVC);
-                            System.out.println("Вкинуто");
+                            success.set(true);
                         }).complete();
             } catch (Throwable ignored) {}
             if (!success.get()) {
                 voiceChannel.delete().queue();
-            }
+            } else try {
+                Thread.sleep(5000);
+                if (voiceChannel.getMembers().isEmpty()) {
+                    PrivateVcs.privateVcDAO.remove(
+                            PrivateVcs.privateVcDAO.get(channel.getId())
+                    );
+                    voiceChannel.delete()
+                            .complete();
+                }
+            } catch (Throwable ignored) {}
         }
 
     }
@@ -87,7 +95,8 @@ public class VoiceChannelListener extends ListenerAdapter {
                         .forEach(privateVc -> PrivateVcs.privateVcDAO.remove(privateVc));
                 privateVcs.stream().forEach(privateVc -> {
                     VoiceChannel voiceChannel = jda.getVoiceChannelById(privateVc.getChannelId());
-                    if (voiceChannel.getMembers().isEmpty()) {
+                    if (voiceChannel == null) PrivateVcs.privateVcDAO.remove(privateVc);
+                    else if (voiceChannel.getMembers().isEmpty()) {
                         voiceChannel.delete().queue();
                         PrivateVcs.privateVcDAO.remove(privateVc);
                     }
