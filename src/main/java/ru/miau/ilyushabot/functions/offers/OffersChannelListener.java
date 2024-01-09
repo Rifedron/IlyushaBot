@@ -59,14 +59,12 @@ public class OffersChannelListener extends ListenerAdapter {
     public void onMessageDelete(MessageDeleteEvent event) {
         Offer offer = Offers.offerDAO.getOfferByMessageId(event.getMessageId());
         if (offer != null) {
-            int halalCount = offer.getVotersByType(VoteType.HALAL).size();
-            int haramCount = offer.getVotersByType(VoteType.HARAM).size();
             Message cloneOfDeletedMessage = event.getChannel().sendMessageEmbeds(offer.getOfferEmbed())
                     .setActionRow(
                             Button.of(ButtonStyle.SUCCESS, "halal",
-                                    String.valueOf(halalCount == 0? "" : halalCount), Emoji.fromUnicode("\uD83D\uDC4D")),
+                                    String.valueOf(offer.getVotersByType(VoteType.HALAL).size()), Emoji.fromUnicode("\uD83D\uDC4D")),
                             Button.of(ButtonStyle.DANGER, "haram",
-                                    String.valueOf(haramCount == 0? "" : haramCount), Emoji.fromUnicode("\uD83D\uDC4E"))
+                                    String.valueOf(offer.getVotersByType(VoteType.HARAM).size()), Emoji.fromUnicode("\uD83D\uDC4E"))
                     )
                     .complete();
             offer.setMessageId(cloneOfDeletedMessage.getId());

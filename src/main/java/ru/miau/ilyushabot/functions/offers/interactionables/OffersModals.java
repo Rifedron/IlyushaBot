@@ -53,45 +53,6 @@ public class OffersModals {
     }
 
     @Modal
-    void alreadyExistingOffer(ModalInteraction interaction) {
-        String offerMessageId = interaction.getValue("currentOfferId").getAsString();
-        String originalOfferMessageId = interaction.getValue("originalOfferId").getAsString();
-        Offer offer = Offers.offerDAO.getOfferByMessageId(offerMessageId);
-        Offer originalOffer = Offers.offerDAO.getOfferByMessageId(originalOfferMessageId);
-        if (originalOfferMessageId.equals(offerMessageId)) {
-            interaction.reply("Указано одно и то же предложение")
-                    .setEphemeral(true)
-                    .queue();
-            return;
-        }
-        if (offer == null) {
-            interaction.reply("Предложение не найдено")
-                    .setEphemeral(true)
-                    .queue();
-            return;
-        }
-        if (originalOffer == null) {
-            interaction.reply("Оригинальное предложение не указано")
-                    .setEphemeral(true)
-                    .queue();
-            return;
-        }
-        MessageEditAction editAction = offers.editOfferMessage(interaction.getMember() ,offer, OfferStatus.ALREADY_OFFERED);
-        editAction.setEmbeds(EmbedBuilder.fromData(editAction.getEmbeds().get(0).toData())
-                .clearFields()
-                .addField("Оригинальное предложение", String.format(Message.JUMP_URL,
-                        interaction.getGuild().getId(),
-                        interaction.getChannel().getId(),
-                        originalOfferMessageId), true)
-                        .build())
-                .queue();
-        offers.offerStatusNotification(interaction.getMember() ,offer, OfferStatus.ALREADY_OFFERED.displayName);
-        Offers.offerDAO.updateStatusById(offerMessageId, OfferStatus.ALREADY_OFFERED);
-        interaction.reply("Статус изменён")
-                .setEphemeral(true)
-                .queue();
-    }
-    @Modal
     void deleteOffer(ModalInteraction interaction) {
         String deletedOfferId = interaction.getModalId().split("\\|")[1];
         Offer deletedOffer = Offers.offerDAO.getOfferByMessageId(deletedOfferId);

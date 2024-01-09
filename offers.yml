@@ -1,4 +1,4 @@
-- voters: []
+- voters: &id001 []
   messageId: '1194180527532539904'
   authorId: '706544990901370951'
   offerText: СрЫКУвп
@@ -6,3 +6,23 @@
   embedData: '{"color":522015,"footer":{"icon_url":"https://cdn.discordapp.com/avatars/706544990901370951/de6c5ddc8c9e95ab97b56489cc69c062.png","text":"Ответил
     xdsrgxzdrhg"},"author":{"icon_url":"https://cdn.discordapp.com/avatars/706544990901370951/de6c5ddc8c9e95ab97b56489cc69c062.png","name":"xdsrgxzdrhg"},"description":"СрЫКУвп","title":"Предложение
     | Одобрено"}'
+- voters: *id001
+  messageId: '1194205396596948994'
+  authorId: '837945527512727592'
+  offerText: чикипуки
+  offerStatus: IGNORED
+  embedData: '{"color":16777215,"author":{"icon_url":"https://cdn.discordapp.com/avatars/837945527512727592/a82b60fac4c168cc7e56da95d5cffaea.png","name":"подмишка"},"description":"чикипуки","title":"Предложение"}'
+- voters:
+  - {voteType: HALAL, userId: '1071120242945835038'}
+  messageId: '1194243047203016815'
+  authorId: '789897219439722566'
+  offerText: хочу пива
+  offerStatus: IGNORED
+  embedData: '{"color":16777215,"author":{"icon_url":"https://cdn.discordapp.com/avatars/789897219439722566/a_a814fc4e786205a3feca383e0bcd68e1.gif","name":"🎄FrederickFox"},"description":"хочу
+    пива","title":"Предложение"}'
+- voters: *id001
+  messageId: '1194271897177829386'
+  authorId: '1071120242945835038'
+  offerText: сараеворогадица
+  offerStatus: IGNORED
+  embedData: '{"color":16777215,"author":{"icon_url":"https://cdn.discordapp.com/avatars/1071120242945835038/4acd41b1bc8c1d0fb8bbf89e92df3fad.png","name":"grdftx"},"description":"сараеворогадица","title":"Предложение"}'

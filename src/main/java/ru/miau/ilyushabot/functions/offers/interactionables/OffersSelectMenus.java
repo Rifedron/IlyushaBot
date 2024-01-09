@@ -38,11 +38,6 @@ public class OffersSelectMenus {
     }
 
     private void offerReply(StringSelectInteraction interaction,Offer offer, OfferStatus status) {
-        if (status.equals(OfferStatus.ALREADY_OFFERED)) {
-            interaction.replyModal(alreadyExistingOfferModal(offer.getMessageId()))
-                    .queue();
-            return;
-        }
         offers.editOfferMessage(interaction.getMember() ,offer, status).queue();
         offers.offerStatusNotification(interaction.getMember() ,offer, status.displayName);
         Offers.offerDAO.updateStatusById(offer.getMessageId(), status);
@@ -64,14 +59,6 @@ public class OffersSelectMenus {
                 .addActionRow(
                         TextInput.create("deleteReason", "Причина ответа", TextInputStyle.PARAGRAPH)
                                 .setPlaceholder("Причина мегаступид")
-                                .build()
-                ).build();
-    }
-    private static Modal alreadyExistingOfferModal(String messageId) {
-        return Modal.create("alreadyExistingOffer|"+messageId, "Ответ на повторяющееся предложение")
-                .addActionRow(
-                        TextInput.create("originalOfferId", "ID оригинального предложения", TextInputStyle.SHORT)
-                                .setPlaceholder("ID")
                                 .build()
                 ).build();
     }

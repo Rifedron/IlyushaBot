@@ -49,19 +49,16 @@ public class OffersButtons {
         Button haramButton = buttons.get(1);
         Offer offer = Offers.offerDAO.getOfferByMessageId(message.getId());
 
-        int halalCount = offer.getVotersByType(VoteType.HALAL).size();
-        int haramCount = offer.getVotersByType(VoteType.HARAM).size();
-
         buttons.set(0, Button.of(
                 halalButton.getStyle(),
                 halalButton.getId(),
-                String.valueOf(halalCount == 0? "" : halalCount),
+                String.valueOf(offer.getVotersByType(VoteType.HALAL).size()),
                 halalButton.getEmoji()
         ));
         buttons.set(1, Button.of(
                 haramButton.getStyle(),
                 haramButton.getId(),
-                String.valueOf(haramCount == 0? "" : haramCount),
+                String.valueOf(offer.getVotersByType(VoteType.HARAM).size()),
                 haramButton.getEmoji()
         ));
         message.editMessage(MessageEditData.fromMessage(message))

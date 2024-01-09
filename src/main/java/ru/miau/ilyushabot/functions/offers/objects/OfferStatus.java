@@ -9,9 +9,6 @@ public enum OfferStatus {
     IMPLEMENTED(Color.decode("#59ffac"), "Введено", "✨"),
     ACCEPTED(Color.decode("#07f71f"), "Одобрено", "✅"),
     DENIED(Color.RED, "Отклонено", "❌"),
-    UNDER_CONSIDERATION(Color.decode("#ebc000"), "На рассмотрении", "\uD83D\uDD0D"),
-    ALREADY_OFFERED(Color.decode("#cc6e16"), "Уже предложено", "\uD83D\uDC6C"),
-    ALREADY_EXISTS(Color.decode("#5e825b"), "Уже реализовано ранее", "\uD83D\uDE10"),
     IGNORED(Color.WHITE, "В ожидании", "✨");
 
     public final Color color;
@@ -20,6 +17,13 @@ public enum OfferStatus {
 
     public Emoji getEmoji() {
         return Emoji.fromUnicode(emojiUnicode);
+    }
+    public static OfferStatus getByColor(Color color) {
+        for (OfferStatus status : values()) {
+            if (status.color.equals(color))
+                return status;
+        }
+        return IGNORED;
     }
 
     OfferStatus(Color color, String displayName, String emojiUnicode) {
