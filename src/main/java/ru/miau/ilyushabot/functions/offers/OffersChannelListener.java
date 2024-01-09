@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ru.miau.ilyushabot.IlyushaBot;
 import ru.miau.ilyushabot.functions.offers.objects.Offer;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
@@ -54,11 +53,6 @@ public class OffersChannelListener extends ListenerAdapter {
                 .setAuthor(member.getEffectiveName(), null, member.getEffectiveAvatar().getUrl())
                 .setTitle("Предложение")
                 .setDescription(content);
-    }
-    private EmbedBuilder offerEmbed(Offer offer) {
-        return offerEmbed(offer.getMember(), offer.getOfferText())
-                .setTitle(offer.getStatus() == OfferStatus.IGNORED ? "Предложение"
-                        : "Предложение | "+offer.getStatus().displayName);
     }
 
     @Override

@@ -12,8 +12,7 @@ import ru.miau.ilyushabot.functions.offers.objects.Offer;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 
 public class OffersModals {
-    private Offers config = new Offers();
-    private Offers offers = new Offers();
+    private final Offers offers = new Offers();
     @Modal
     void offerFeedback(ModalInteraction interaction) {
         String offerMessageId = interaction.getModalId().split("\\|")[1];

@@ -10,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ModalManager extends ListenerAdapter {
-    private Class[] modalClasses = new Class[] {
+    private final Class[] modalClasses = new Class[] {
             OffersModals.class
     };
 

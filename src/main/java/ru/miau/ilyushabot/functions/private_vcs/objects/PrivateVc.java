@@ -16,8 +16,7 @@ public class PrivateVc {
     private String currentOwnerId;
 
     public boolean hasActiveOwner() {
-        if (currentOwnerId != null) return true;
-        else return false;
+        return currentOwnerId != null;
     }
     public String getChannelId() {
         return channelId;

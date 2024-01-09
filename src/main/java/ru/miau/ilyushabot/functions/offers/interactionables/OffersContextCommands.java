@@ -12,7 +12,7 @@ import ru.miau.ilyushabot.functions.offers.Offers;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 
 public class OffersContextCommands {
-    private Offers config = new Offers();
+    private final Offers offers = new Offers();
     @Context(name = "Ответить на предложение", type = Command.Type.MESSAGE)
     void replyOffer(MessageContextInteraction interaction) {
         if (isOfferReplyValid(interaction)) {
@@ -36,7 +36,7 @@ public class OffersContextCommands {
     }
 
     private boolean isOfferReplyValid(MessageContextInteraction interaction) {
-        if (!config.hasReplierRights(interaction.getMember())) {
+        if (!offers.hasReplierRights(interaction.getMember())) {
             interaction.reply("У вас нет прав на рассмотрение предложений")
                     .setEphemeral(true)
                     .queue();

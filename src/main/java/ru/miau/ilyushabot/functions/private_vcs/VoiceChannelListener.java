@@ -31,7 +31,7 @@ public class VoiceChannelListener extends ListenerAdapter {
 
     private void onJoinVC(GuildVoiceUpdateEvent e) {
         AudioChannelUnion channel = e.getChannelJoined();
-        if (channel.getIdLong() == voiceFabricId.longValue()) {
+        if (channel.getIdLong() == voiceFabricId) {
             Category category = channel.getParentCategory();
             Member member = e.getMember();
             VoiceChannel voiceChannel = category.createVoiceChannel(member.getEffectiveName())
