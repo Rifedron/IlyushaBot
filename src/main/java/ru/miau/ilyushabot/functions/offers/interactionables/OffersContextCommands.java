@@ -31,6 +31,7 @@ public class OffersContextCommands {
             }
         }
         selectMenu.addOption("Изменить комментарий", String.format("%s|%s", "editFeedback", message.getId()), null, Emoji.fromUnicode("\uD83D\uDCDD"));
+        selectMenu.addOption("Удалить предложение", String.format("%s|%s", "deleteOffer", message.getId()), null, Emoji.fromUnicode("\uD83D\uDDD1"));
         return selectMenu.build();
     }
 

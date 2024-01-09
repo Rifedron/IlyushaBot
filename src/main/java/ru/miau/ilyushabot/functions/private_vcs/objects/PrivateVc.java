@@ -55,7 +55,7 @@ public class PrivateVc {
                     .complete());
             currentOwnerId = null;
             if ( PrivateVcs.privateVcDAO != null) PrivateVcs.privateVcDAO.update();
-        } else System.out.println("Владельца итак нет");
+        }
     }
 
     public PrivateVc(String channelId, String ownerId) {

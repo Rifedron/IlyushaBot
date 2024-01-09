@@ -10,8 +10,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import ru.miau.ilyushabot.IlyushaBot;
 import ru.miau.ilyushabot.functions.offers.objects.Offer;
+import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
+import ru.miau.ilyushabot.functions.offers.objects.VoteType;
 
 import java.awt.*;
 
@@ -26,7 +29,8 @@ public class OffersChannelListener extends ListenerAdapter {
             String messageContent = message.getContentRaw();
             if (!messageContent.startsWith("-")) {
                 message.delete().queue();
-                event.getChannel().sendMessageEmbeds(offerEmbed(event.getMember(), messageContent))
+                MessageEmbed embed = offerEmbed(event.getMember(), messageContent).build();
+                event.getChannel().sendMessageEmbeds(embed)
                         .addActionRow(
                                 Button.of(ButtonStyle.SUCCESS, "halal", Emoji.fromUnicode("\uD83D\uDC4D")),
                                 Button.of(ButtonStyle.DANGER, "haram", Emoji.fromUnicode("\uD83D\uDC4E"))
@@ -35,28 +39,49 @@ public class OffersChannelListener extends ListenerAdapter {
                             Offers.offerDAO.add(new Offer(
                                     message.getAuthor().getId(),
                                     message1.getId(),
-                                    message.getContentRaw()
+                                    message.getContentRaw(),
+                                    embed
                             ))
+
                         );
             }
 
         }
     }
-    private MessageEmbed offerEmbed(Member member, String content) {
+    private EmbedBuilder offerEmbed(Member member, String content) {
         return new EmbedBuilder()
                 .setColor(Color.WHITE)
                 .setAuthor(member.getEffectiveName(), null, member.getEffectiveAvatar().getUrl())
                 .setTitle("Предложение")
-                .setDescription(content)
-                .build();
+                .setDescription(content);
+    }
+    private EmbedBuilder offerEmbed(Offer offer) {
+        return offerEmbed(offer.getMember(), offer.getOfferText())
+                .setTitle(offer.getStatus() == OfferStatus.IGNORED ? "Предложение"
+                        : "Предложение | "+offer.getStatus().displayName);
     }
 
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
         Offer offer = Offers.offerDAO.getOfferByMessageId(event.getMessageId());
         if (offer != null) {
-            Offers.offerDAO.removeOffer(offer);
-            System.out.println("Предложение \""+offer.getOfferText()+"\" удалено");
+            int halalCount = offer.getVotersByType(VoteType.HALAL).size();
+            int haramCount = offer.getVotersByType(VoteType.HARAM).size();
+            Message cloneOfDeletedMessage = event.getChannel().sendMessageEmbeds(offer.getOfferEmbed())
+                    .setActionRow(
+                            Button.of(ButtonStyle.SUCCESS, "halal",
+                                    String.valueOf(halalCount == 0? "" : halalCount), Emoji.fromUnicode("\uD83D\uDC4D")),
+                            Button.of(ButtonStyle.DANGER, "haram",
+                                    String.valueOf(haramCount == 0? "" : haramCount), Emoji.fromUnicode("\uD83D\uDC4E"))
+                    )
+                    .complete();
+            offer.setMessageId(cloneOfDeletedMessage.getId());
+            Offers.offerDAO.updateOffers();
+            offer.getAuthor()
+                    .openPrivateChannel().complete()
+                    .sendMessageFormat("Ваше предложение %s попытались удалить без причины\n" +
+                            "Вы имеете право разобраться в ситуации", cloneOfDeletedMessage.getJumpUrl())
+                    .queue();
         }
     }
 }

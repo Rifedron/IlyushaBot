@@ -2,6 +2,8 @@ package ru.miau.ilyushabot.functions.offers.objects;
 
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import ru.miau.ilyushabot.IlyushaBot;
 import ru.miau.ilyushabot.functions.offers.Offers;
@@ -16,9 +18,15 @@ public class Offer {
         return messageId;
     }
 
-    private final String messageId;
+    private String messageId;
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
     private final String offerText;
     private OfferStatus status;
+    private MessageEmbed offerEmbed;
 
     public List<Voter> getVoters() {
         return voters;
@@ -44,19 +52,22 @@ public class Offer {
     public String getAuthorId() {
         return authorId;
     }
-
+    public User getAuthor() {
+        return IlyushaBot.jda.getUserById(authorId);
+    }
     public String getOfferText() {
         return offerText;
     }
 
-    public Offer(String authorId, String messageId, String offerText) {
+    public Offer(String authorId, String messageId, String offerText, MessageEmbed embed) {
         this.authorId = authorId;
         this.messageId = messageId;
         this.offerText = offerText;
         this.status = OfferStatus.IGNORED;
+        if (embed != null) this.offerEmbed = embed;
     }
-    public Offer(String authorId, String messageId, String offerText, List<Voter> voters, OfferStatus status) {
-        this(authorId, messageId, offerText);
+    public Offer(String authorId, String messageId, String offerText, List<Voter> voters, OfferStatus status, MessageEmbed embed) {
+        this(authorId, messageId, offerText, embed);
         this.voters = new ArrayList<>(voters);
         if (status != null) this.status = status;
     }
@@ -80,5 +91,13 @@ public class Offer {
     }
     public Message getMessage() {
         return IlyushaBot.jda.getTextChannelById(new Offers().offersChannelId).retrieveMessageById(messageId).complete();
+    }
+
+    public MessageEmbed getOfferEmbed() {
+        return offerEmbed;
+    }
+
+    public void setOfferEmbed(MessageEmbed offerEmbed) {
+        this.offerEmbed = offerEmbed;
     }
 }

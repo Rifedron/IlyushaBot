@@ -19,13 +19,16 @@ public class OffersSelectMenus {
             String option = selectedValue[0];
             String offerMessageId = selectedValue[1];
             Offer offer = Offers.offerDAO.getOfferByMessageId(offerMessageId);
-            if (option.equals("editFeedback")) {
-                interaction.replyModal(feedbackModal(offerMessageId))
+            switch (option) {
+                case "editFeedback" -> interaction.replyModal(feedbackModal(offerMessageId))
                         .queue();
-            } else {
-                OfferStatus newStatus = OfferStatus.valueOf(option);
-                offer.setStatus(newStatus);
-                offerReply(interaction, offer, newStatus);
+                case "deleteOffer" -> interaction.replyModal(deleteReasonModal(offerMessageId))
+                        .queue();
+                default -> {
+                    OfferStatus newStatus = OfferStatus.valueOf(option);
+                    offer.setStatus(newStatus);
+                    offerReply(interaction, offer, newStatus);
+                }
             }
         } else {
             interaction.reply("У вас нет прав на рассмотрение предложений")
@@ -49,25 +52,23 @@ public class OffersSelectMenus {
     }
 
     private static Modal feedbackModal(String messageId) {
-        return Modal.create("offerFeedback", "Комментарий к предложению")
-                .addActionRow(
-                        TextInput.create("offerId", "ID предложения", TextInputStyle.SHORT)
-                                .setValue(messageId)
-                                .build()
-                )
+        return Modal.create("offerFeedback|"+messageId, "Комментарий к предложению")
                 .addActionRow(
                         TextInput.create("offerFeedbackMessage", "Текст ответа", TextInputStyle.PARAGRAPH)
                                 .setPlaceholder("Причина ступид")
                                 .build()
                 ).build();
     }
-    private static Modal alreadyExistingOfferModal(String messageId) {
-        return Modal.create("alreadyExistingOffer", "Ответ на повторяющееся предложение")
+    private static Modal deleteReasonModal(String messageId) {
+        return Modal.create("deleteOffer|"+messageId, "Комментарий к предложению")
                 .addActionRow(
-                        TextInput.create("currentOfferId", "ID повторного предложения", TextInputStyle.SHORT)
-                                .setValue(messageId)
+                        TextInput.create("deleteReason", "Причина ответа", TextInputStyle.PARAGRAPH)
+                                .setPlaceholder("Причина мегаступид")
                                 .build()
-                )
+                ).build();
+    }
+    private static Modal alreadyExistingOfferModal(String messageId) {
+        return Modal.create("alreadyExistingOffer|"+messageId, "Ответ на повторяющееся предложение")
                 .addActionRow(
                         TextInput.create("originalOfferId", "ID оригинального предложения", TextInputStyle.SHORT)
                                 .setPlaceholder("ID")

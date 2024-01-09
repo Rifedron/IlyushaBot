@@ -1,5 +1,8 @@
 package ru.miau.ilyushabot.functions.offers.objects;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileReader;
@@ -59,6 +62,11 @@ public class OfferDAO {
                     OfferStatus status;
                     if (offerStatusName == null) status = OfferStatus.IGNORED;
                     else status = OfferStatus.valueOf(offerStatusName);
+                    String embedData = (String) stringObjectMap.get("embedData");
+                    MessageEmbed embed;
+                    if (embedData != null) {
+                        embed = EmbedBuilder.fromData(DataObject.fromJson(embedData)).build();
+                    } else embed = null;
                     offers.add(new Offer(
                             (String) stringObjectMap.get("authorId"),
                             (String) stringObjectMap.get("messageId"),
@@ -68,7 +76,8 @@ public class OfferDAO {
                                             (String) stringObjectMap1.get("userId"),
                                             VoteType.valueOf(((String)stringObjectMap1.get("voteType")))
                                     )).toList(),
-                            status
+                            status,
+                            embed
                             ));
                 });
             }
@@ -78,7 +87,7 @@ public class OfferDAO {
         }
     }
 
-    private void updateOffers() {
+    public void updateOffers() {
         Yaml yaml = new Yaml();
         try {
             FileWriter writer = new FileWriter(OFFERS_FILE_NAME);
@@ -94,6 +103,7 @@ public class OfferDAO {
                     return voterMap;
                 }).toList());
                 offerMap.put("offerStatus", offer.getStatus().name());
+                offerMap.put("embedData", offer.getOfferEmbed().toData().toString());
                 return offerMap;
             }).toList()));
             writer.close();

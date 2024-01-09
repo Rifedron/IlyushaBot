@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceSuppressEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -19,10 +18,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VoiceChannelListener extends ListenerAdapter {
-    private Long voiceFabricId = (Long) IlyushaBot.config.get("privateVcFabricId");
-    private VoiceChannel getVoiceFabric() {
-        return IlyushaBot.jda.getVoiceChannelById(voiceFabricId);
-    }
+    private final Long voiceFabricId = (Long) IlyushaBot.config.get("privateVcFabricId");
+
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
         AudioChannelUnion joinChannel = event.getChannelJoined();
@@ -30,11 +27,6 @@ public class VoiceChannelListener extends ListenerAdapter {
 
         if (joinChannel != null) new Thread(() -> onJoinVC(event)).start();
         if (leftChannel != null) new Thread(() -> onQuitVC(event)).start();
-    }
-
-    @Override
-    public void onGuildVoiceSuppress(GuildVoiceSuppressEvent event) {
-        super.onGuildVoiceSuppress(event);
     }
 
     private void onJoinVC(GuildVoiceUpdateEvent e) {
@@ -57,7 +49,7 @@ public class VoiceChannelListener extends ListenerAdapter {
             if (!success.get()) {
                 voiceChannel.delete().queue();
             } else try {
-                Thread.sleep(5000);
+                Thread.sleep(750);
                 if (voiceChannel.getMembers().isEmpty()) {
                     PrivateVcs.privateVcDAO.remove(
                             PrivateVcs.privateVcDAO.get(channel.getId())

@@ -21,7 +21,7 @@ public class ModalManager extends ListenerAdapter {
             try {
                 var modalClassInstance = modalClass.getConstructor().newInstance();
             for (Method method : OffersModals.class.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(Modal.class) && interaction.getModalId().equals(method.getName())) {
+                if (method.isAnnotationPresent(Modal.class) && interaction.getModalId().startsWith(method.getName())) {
                     method.setAccessible(true);
                     method.invoke(modalClassInstance, event);
                 }

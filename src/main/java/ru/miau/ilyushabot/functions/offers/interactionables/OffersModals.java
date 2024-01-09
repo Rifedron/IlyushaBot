@@ -12,10 +12,11 @@ import ru.miau.ilyushabot.functions.offers.objects.Offer;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 
 public class OffersModals {
+    private Offers config = new Offers();
     private Offers offers = new Offers();
     @Modal
     void offerFeedback(ModalInteraction interaction) {
-        String offerMessageId = interaction.getValue("offerId").getAsString();
+        String offerMessageId = interaction.getModalId().split("\\|")[1];
         Offer offer = Offers.offerDAO.getOfferByMessageId(offerMessageId);
         if (offer == null) {
             interaction.reply("Предложение не найдено")
@@ -90,5 +91,24 @@ public class OffersModals {
         interaction.reply("Статус изменён")
                 .setEphemeral(true)
                 .queue();
+    }
+    @Modal
+    void deleteOffer(ModalInteraction interaction) {
+        String deletedOfferId = interaction.getModalId().split("\\|")[1];
+        Offer deletedOffer = Offers.offerDAO.getOfferByMessageId(deletedOfferId);
+        Message messageToDelete = interaction.getChannel().retrieveMessageById(deletedOfferId).complete();
+        deletedOffer.getAuthor().openPrivateChannel().complete()
+                .sendMessageFormat("Ваше предложение было удалено модератором %s\n" +
+                                "**Причина: ```%s```**" +
+                                "Удалённое предложение:",
+                        interaction.getMember().getAsMention(),
+                        interaction.getValue("deleteReason").getAsString())
+                .addEmbeds(messageToDelete.getEmbeds().get(0))
+                .queue();
+        interaction.reply("Вы удалили предложение")
+                .setEphemeral(true)
+                .queue();
+        messageToDelete.delete().queue();
+        Offers.offerDAO.removeOffer(deletedOffer);
     }
 }

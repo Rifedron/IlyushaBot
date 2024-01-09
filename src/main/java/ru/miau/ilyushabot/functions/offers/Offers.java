@@ -34,6 +34,7 @@ public class Offers {
                 .setTitle("Предложение | " + status.displayName)
                 .setColor(status.color)
                 .setFooter("Ответил "+replier.getEffectiveName(), replier.getEffectiveAvatarUrl());
+        offer.setOfferEmbed(embedBuilder.build());
         return message.editMessage(MessageEditData.fromMessage(message))
                 .setEmbeds(embedBuilder.build())
                 .setActionRow(message.getButtons());

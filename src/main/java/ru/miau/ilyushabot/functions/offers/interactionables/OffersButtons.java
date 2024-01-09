@@ -64,7 +64,6 @@ public class OffersButtons {
                 String.valueOf(haramCount == 0? "" : haramCount),
                 haramButton.getEmoji()
         ));
-
         message.editMessage(MessageEditData.fromMessage(message))
                 .setActionRow(buttons)
                 .queue();
