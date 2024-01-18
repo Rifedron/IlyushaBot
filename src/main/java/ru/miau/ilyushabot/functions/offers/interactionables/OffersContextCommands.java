@@ -43,7 +43,7 @@ public class OffersContextCommands {
             return false;
         }
         Message message = interaction.getTarget();
-        if (Offers.offerDAO.getOfferByMessageId(message.getId()) == null) {
+        if (Offers.offerDAO.get(message.getId()) == null) {
             interaction.reply("Сообщение не является предложением")
                     .setEphemeral(true)
                     .queue();

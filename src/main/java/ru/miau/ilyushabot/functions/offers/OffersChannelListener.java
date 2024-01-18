@@ -11,19 +11,19 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import ru.miau.ilyushabot.IlyushaBot;
+import ru.miau.ilyushabot.YamlKeys;
 import ru.miau.ilyushabot.functions.offers.objects.Offer;
-import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 import ru.miau.ilyushabot.functions.offers.objects.VoteType;
 
 import java.awt.*;
 
 public class OffersChannelListener extends ListenerAdapter {
-    private final Long offersChannelId = (Long) IlyushaBot.config.get("channelId");
+    private final Long offersChannelId = (Long) IlyushaBot.config.get(YamlKeys.OFFERS_CHANNEL_ID);
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
 
-        if (event.getChannel().getIdLong() == offersChannelId && !event.getAuthor().isBot()) {
+        if (offersChannelId == event.getChannel().getIdLong() && !event.getAuthor().isBot()) {
             Message message = event.getMessage();
             String messageContent = message.getContentRaw();
             if (!messageContent.startsWith("-")) {
@@ -31,17 +31,15 @@ public class OffersChannelListener extends ListenerAdapter {
                 MessageEmbed embed = offerEmbed(event.getMember(), messageContent).build();
                 event.getChannel().sendMessageEmbeds(embed)
                         .addActionRow(
-                                Button.of(ButtonStyle.SUCCESS, "halal", Emoji.fromUnicode("\uD83D\uDC4D")),
-                                Button.of(ButtonStyle.DANGER, "haram", Emoji.fromUnicode("\uD83D\uDC4E"))
+                                Button.of(ButtonStyle.SUCCESS, "halal", "0",Emoji.fromUnicode("\uD83D\uDC4D")),
+                                Button.of(ButtonStyle.DANGER, "haram", "0", Emoji.fromUnicode("\uD83D\uDC4E"))
                         )
                         .queue(message1 ->
                             Offers.offerDAO.add(new Offer(
                                     message.getAuthor().getId(),
                                     message1.getId(),
-                                    message.getContentRaw(),
                                     embed
                             ))
-
                         );
             }
 
@@ -57,7 +55,7 @@ public class OffersChannelListener extends ListenerAdapter {
 
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
-        Offer offer = Offers.offerDAO.getOfferByMessageId(event.getMessageId());
+        Offer offer = Offers.offerDAO.get(event.getMessageId());
         if (offer != null) {
             Message cloneOfDeletedMessage = event.getChannel().sendMessageEmbeds(offer.getOfferEmbed())
                     .setActionRow(
@@ -68,7 +66,7 @@ public class OffersChannelListener extends ListenerAdapter {
                     )
                     .complete();
             offer.setMessageId(cloneOfDeletedMessage.getId());
-            Offers.offerDAO.updateOffers();
+            Offers.offerDAO.update();
             offer.getAuthor()
                     .openPrivateChannel().complete()
                     .sendMessageFormat("Ваше предложение %s попытались удалить без причины\n" +

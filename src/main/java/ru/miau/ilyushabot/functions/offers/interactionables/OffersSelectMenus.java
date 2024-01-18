@@ -9,6 +9,8 @@ import ru.miau.ilyushabot.functions.offers.Offers;
 import ru.miau.ilyushabot.functions.offers.objects.Offer;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 
+import static ru.miau.ilyushabot.functions.offers.Offers.offerDAO;
+
 public class OffersSelectMenus {
     private final Offers offers = new Offers();
 
@@ -18,7 +20,7 @@ public class OffersSelectMenus {
             String[] selectedValue = interaction.getValues().get(0).split("\\|");
             String option = selectedValue[0];
             String offerMessageId = selectedValue[1];
-            Offer offer = Offers.offerDAO.getOfferByMessageId(offerMessageId);
+            Offer offer = offerDAO.get(offerMessageId);
             switch (option) {
                 case "editFeedback" -> interaction.replyModal(feedbackModal(offerMessageId))
                         .queue();
@@ -26,6 +28,11 @@ public class OffersSelectMenus {
                         .queue();
                 default -> {
                     OfferStatus newStatus = OfferStatus.valueOf(option);
+                    if (newStatus.equals(OfferStatus.DENIED)) {
+                        interaction.replyModal(denyReasonModal(offerMessageId))
+                                .queue();
+                        break;
+                    }
                     offer.setStatus(newStatus);
                     offerReply(interaction, offer, newStatus);
                 }
@@ -40,25 +47,33 @@ public class OffersSelectMenus {
     private void offerReply(StringSelectInteraction interaction,Offer offer, OfferStatus status) {
         offers.editOfferMessage(interaction.getMember() ,offer, status).queue();
         offers.offerStatusNotification(interaction.getMember() ,offer, status.displayName);
-        Offers.offerDAO.updateStatusById(offer.getMessageId(), status);
+        offerDAO.get(offer.getMessageId()).setStatus(status);
 
         interaction.replyModal(feedbackModal(offer.getMessageId()))
                 .queue();
+        offerDAO.update();
     }
 
     private static Modal feedbackModal(String messageId) {
         return Modal.create("offerFeedback|"+messageId, "Комментарий к предложению")
                 .addActionRow(
-                        TextInput.create("offerFeedbackMessage", "Текст ответа", TextInputStyle.PARAGRAPH)
-                                .setPlaceholder("Причина ступид")
+                        TextInput.create("offerFeedbackMessage", "Текст комментария", TextInputStyle.PARAGRAPH)
+                                .build()
+                ).build();
+    }
+    private static Modal denyReasonModal(String messageId) {
+        return Modal.create("denyOffer|"+messageId, "Отказ")
+                .addActionRow(
+                        TextInput.create("denyReason", "Причина отказа", TextInputStyle.PARAGRAPH)
+                                .setPlaceholder("Предложение ступид")
                                 .build()
                 ).build();
     }
     private static Modal deleteReasonModal(String messageId) {
-        return Modal.create("deleteOffer|"+messageId, "Комментарий к предложению")
+        return Modal.create("deleteOffer|"+messageId, "Удаление")
                 .addActionRow(
-                        TextInput.create("deleteReason", "Причина ответа", TextInputStyle.PARAGRAPH)
-                                .setPlaceholder("Причина мегаступид")
+                        TextInput.create("deleteReason", "Причина удаления", TextInputStyle.PARAGRAPH)
+                                .setPlaceholder("Предложение мегаступид")
                                 .build()
                 ).build();
     }

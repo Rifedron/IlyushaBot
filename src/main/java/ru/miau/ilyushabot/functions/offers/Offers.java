@@ -7,15 +7,16 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import ru.miau.ilyushabot.IlyushaBot;
+import ru.miau.ilyushabot.YamlKeys;
 import ru.miau.ilyushabot.functions.offers.objects.Offer;
 import ru.miau.ilyushabot.functions.offers.objects.OfferDAO;
 import ru.miau.ilyushabot.functions.offers.objects.OfferStatus;
 
 public class Offers {
     public static OfferDAO offerDAO = new OfferDAO();
-    public final Long replierRoleId = (Long) IlyushaBot.config.get("replierRoleId");
+    public final Long replierRoleId = (Long) IlyushaBot.config.get(YamlKeys.OFFERS_REPLIER_ROLE_ID);
     public final Role replierRole = IlyushaBot.guild.getRoleById(replierRoleId);
-    public final Long offersChannelId = (Long) IlyushaBot.config.get("channelId");
+    public final Long offersChannelId = (Long) IlyushaBot.config.get(YamlKeys.OFFERS_CHANNEL_ID);
     public boolean hasReplierRights(Member member) {
         boolean allowed = false;
         for (Role role : member.getRoles()) {
@@ -33,6 +34,7 @@ public class Offers {
         embedBuilder
                 .setTitle("Предложение | " + status.displayName)
                 .setColor(status.color)
+                .clearFields()
                 .setFooter("Ответил "+replier.getEffectiveName(), replier.getEffectiveAvatarUrl());
         offer.setOfferEmbed(embedBuilder.build());
         return message.editMessage(MessageEditData.fromMessage(message))
@@ -42,7 +44,7 @@ public class Offers {
     public void offerStatusNotification(Member replier ,Offer offer, String status) {
         try {
             IlyushaBot.jda.getUserById(
-                            Offers.offerDAO.getOfferByMessageId(offer.getMessageId()).getAuthorId()
+                            Offers.offerDAO.get(offer.getMessageId()).getAuthorId()
                     ).openPrivateChannel().complete()
                     .sendMessageFormat(
                             "У вашего предложения %s обновлён статус на \"%s\" модератором %s",

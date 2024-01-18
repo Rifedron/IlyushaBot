@@ -11,14 +11,17 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import ru.miau.ilyushabot.IlyushaBot;
+import ru.miau.ilyushabot.YamlKeys;
 import ru.miau.ilyushabot.functions.private_vcs.objects.PrivateVc;
 
 import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static ru.miau.ilyushabot.functions.private_vcs.PrivateVcs.privateVcDAO;
+
 public class VoiceChannelListener extends ListenerAdapter {
-    private final Long voiceFabricId = (Long) IlyushaBot.config.get("privateVcFabricId");
+    private final Long voiceFabricId = (Long) IlyushaBot.config.get(YamlKeys.PRIVATE_VC_FABRIC_ID);
 
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
@@ -31,66 +34,76 @@ public class VoiceChannelListener extends ListenerAdapter {
 
     private void onJoinVC(GuildVoiceUpdateEvent e) {
         AudioChannelUnion channel = e.getChannelJoined();
-        if (channel.getIdLong() == voiceFabricId) {
-            Category category = channel.getParentCategory();
-            Member member = e.getMember();
-            VoiceChannel voiceChannel = category.createVoiceChannel(member.getEffectiveName())
-                    .complete();
-            voiceChannel.sendMessageEmbeds(privateChannelEmbed(member)).queue();
-            AtomicBoolean success = new AtomicBoolean(false);
-            try {
-                voiceChannel.getGuild().moveVoiceMember(member, voiceChannel)
-                        .onSuccess(unused -> {
-                            PrivateVc privateVC = new PrivateVc(voiceChannel.getId(), member.getId());
-                            PrivateVcs.privateVcDAO.add(privateVC);
-                            success.set(true);
-                        }).complete();
-            } catch (Throwable ignored) {}
-            if (!success.get()) {
-                voiceChannel.delete().queue();
-            } else try {
-                Thread.sleep(750);
-                if (voiceChannel.getMembers().isEmpty()) {
-                    PrivateVcs.privateVcDAO.remove(
-                            PrivateVcs.privateVcDAO.get(channel.getId())
-                    );
-                    voiceChannel.delete()
-                            .complete();
-                }
-            } catch (Throwable ignored) {}
-        }
+        Long channelId = channel.getIdLong();
+        Long memberId = e.getMember().getIdLong();
 
+        if (channelId.equals(voiceFabricId)) {
+            createPrivateVc(e);
+            return;
+        }
+        PrivateVc privateVc = privateVcDAO.get(channel.getId());
+        if (privateVc != null) {
+            if (privateVc.getCurrentOwnerId().equals(memberId.toString()))
+                privateVc.setOwnerPermissions(memberId);
+        }
     }
     private void onQuitVC(GuildVoiceUpdateEvent e) {
         AudioChannelUnion channel = e.getChannelLeft();
-        PrivateVc privateVC = PrivateVcs.privateVcDAO.get(channel.getId());
+        PrivateVc privateVC = privateVcDAO.get(channel.getId());
         if (privateVC != null) {
             if (channel.getMembers().isEmpty()) {
                 try {
                     channel.delete().complete();
                 } catch (Throwable ignore) {}
-                PrivateVcs.privateVcDAO.remove(privateVC);
+                privateVcDAO.remove(privateVC);
             } else if (e.getMember().getId().equals(privateVC.getCurrentOwnerId())) {
                 privateVC.removeOwnerPermissions();
             }
         }
     }
-
+    private void createPrivateVc(GuildVoiceUpdateEvent e) {
+        Category category = e.getChannelJoined().getParentCategory();
+        Member member = e.getMember();
+        VoiceChannel voiceChannel = category.createVoiceChannel(member.getEffectiveName())
+                .complete();
+        voiceChannel.sendMessageEmbeds(privateChannelEmbed(member)).queue();
+        AtomicBoolean success = new AtomicBoolean(false);
+        try {
+            voiceChannel.getGuild().moveVoiceMember(member, voiceChannel)
+                    .onSuccess(unused -> {
+                        PrivateVc privateVC = new PrivateVc(voiceChannel.getId(), member.getId());
+                        privateVcDAO.add(privateVC);
+                        success.set(true);
+                    }).complete();
+        } catch (Throwable ignored) {}
+        if (!success.get()) {
+            voiceChannel.delete().queue();
+        } else try {
+            Thread.sleep(750);
+            if (voiceChannel.getMembers().isEmpty()) {
+                privateVcDAO.remove(
+                        privateVcDAO.get(e.getChannelJoined().getId())
+                );
+                voiceChannel.delete()
+                        .complete();
+            }
+        } catch (Throwable ignored) {}
+    }
     @Override
     public void onReady(ReadyEvent event) {
         new Thread(() -> {
             try {
                 JDA jda = event.getJDA().awaitReady();
-                List<PrivateVc> privateVcs = PrivateVcs.privateVcDAO.getPrivates().stream().toList();
+                List<PrivateVc> privateVcs = privateVcDAO.getValues().stream().toList();
                 privateVcs.stream()
                         .filter(privateVc -> jda.getVoiceChannelById(privateVc.getChannelId()) == null)
-                        .forEach(privateVc -> PrivateVcs.privateVcDAO.remove(privateVc));
+                        .forEach(privateVc -> privateVcDAO.remove(privateVc));
                 privateVcs.stream().forEach(privateVc -> {
                     VoiceChannel voiceChannel = jda.getVoiceChannelById(privateVc.getChannelId());
-                    if (voiceChannel == null) PrivateVcs.privateVcDAO.remove(privateVc);
+                    if (voiceChannel == null) privateVcDAO.remove(privateVc);
                     else if (voiceChannel.getMembers().isEmpty()) {
                         voiceChannel.delete().queue();
-                        PrivateVcs.privateVcDAO.remove(privateVc);
+                        privateVcDAO.remove(privateVc);
                     }
                 });
             } catch (InterruptedException e) {

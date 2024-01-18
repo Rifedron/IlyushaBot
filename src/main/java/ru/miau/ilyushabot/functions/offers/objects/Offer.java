@@ -1,17 +1,23 @@
 package ru.miau.ilyushabot.functions.offers.objects;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import ru.miau.ilyushabot.IlyushaBot;
+import ru.miau.ilyushabot.YamlKeys;
+import ru.miau.ilyushabot.data_storing.SavableObject;
 import ru.miau.ilyushabot.functions.offers.Offers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Offer {
+public class Offer implements SavableObject {
     private final String authorId;
 
     public String getMessageId() {
@@ -23,8 +29,6 @@ public class Offer {
     public void setMessageId(String messageId) {
         this.messageId = messageId;
     }
-
-    private final String offerText;
     private OfferStatus status;
     private MessageEmbed offerEmbed;
 
@@ -56,18 +60,17 @@ public class Offer {
         return IlyushaBot.jda.getUserById(authorId);
     }
     public String getOfferText() {
-        return offerText;
+        return offerEmbed.getDescription();
     }
 
-    public Offer(String authorId, String messageId, String offerText, MessageEmbed embed) {
+    public Offer(String authorId, String messageId, MessageEmbed embed) {
         this.authorId = authorId;
         this.messageId = messageId;
-        this.offerText = offerText;
         this.status = OfferStatus.IGNORED;
         if (embed != null) this.offerEmbed = embed;
     }
-    public Offer(String authorId, String messageId, String offerText, List<Voter> voters, OfferStatus status, MessageEmbed embed) {
-        this(authorId, messageId, offerText, embed);
+    public Offer(String authorId, String messageId, List<Voter> voters, OfferStatus status, MessageEmbed embed) {
+        this(authorId, messageId, embed);
         this.voters = new ArrayList<>(voters);
         if (status != null) this.status = status;
     }
@@ -99,5 +102,20 @@ public class Offer {
 
     public void setOfferEmbed(MessageEmbed offerEmbed) {
         this.offerEmbed = offerEmbed;
+    }
+
+    @Override
+    public String getKey() {
+        return messageId;
+    }
+    @Override
+    public Map<String, Object> toSavableMap() {
+        return new HashMap<>() {{
+            put(YamlKeys.OFFER_MESSAGE_ID, messageId);
+            put(YamlKeys.OFFER_AUTHOR_ID, authorId);
+            put(YamlKeys.VOTERS_LIST, voters.stream().map(voter -> voter.toSavableMap()).toList());
+            put(YamlKeys.OFFER_STATUS, status.name());
+            put(YamlKeys.OFFER_EMBED_DATA, offerEmbed.toData().toString());
+        }};
     }
 }

@@ -36,7 +36,7 @@ public class CommandManager extends ListenerAdapter {
                 var commandClassInstance = commandClass.getConstructor().newInstance();
                 for (Method method : commandClass.getDeclaredMethods()) {
                     if (method.isAnnotationPresent(Command.class)) {
-                        if (commandName.equals(method.getName().toLowerCase())) {
+                        if (commandName.equals(method.getAnnotation(Command.class).name())) {
                             method.setAccessible(true);
                             method.invoke(commandClassInstance, event);
                             return;
@@ -93,7 +93,7 @@ public class CommandManager extends ListenerAdapter {
             for (Method method : commandClass.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Command.class)) {
                     Command command = method.getAnnotation(Command.class);
-                    SlashCommandData data = Commands.slash(method.getName().toLowerCase(), command.description());
+                    SlashCommandData data = Commands.slash(command.name(), command.description());
                     if (method.isAnnotationPresent(HasOptions.class)) {
                         Option[] options = method.getAnnotation(HasOptions.class).value();
                         for (Option option : options) {

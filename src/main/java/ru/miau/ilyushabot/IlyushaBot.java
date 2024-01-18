@@ -3,13 +3,14 @@ package ru.miau.ilyushabot;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.yaml.snakeyaml.Yaml;
 import ru.miau.ilyushabot.functions.offers.OffersChannelListener;
 import ru.miau.ilyushabot.functions.private_vcs.VoiceChannelListener;
+
+
 import ru.miau.ilyushabot.managers.*;
 
 import java.io.FileNotFoundException;
@@ -24,7 +25,7 @@ public class IlyushaBot {
     public static Long guildId;
     public static void main(String[] args) throws InterruptedException {
         loadConfig();
-        guildId = (Long) IlyushaBot.config.get("guildId");
+        guildId = (Long) IlyushaBot.config.get(YamlKeys.GUILD_ID);
         jda = JDABuilder.createDefault(token())
                 .enableIntents(EnumSet.allOf(GatewayIntent.class))
                 .enableCache(EnumSet.allOf(CacheFlag.class))
